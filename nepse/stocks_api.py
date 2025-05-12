@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+import joblib
 
 load_dotenv()
 app = Flask(__name__)
@@ -38,6 +39,19 @@ def get_stock_history(symbol):
     if history:
         return jsonify(history)
     return jsonify({"error": "No historical data found"}), 404
+
+
+# Load model
+model = joblib.load("random_forest_model.pkl")
+
+@app.route("/stocks/predict/<symbol>", methods=["GET"])
+def predict_stock(symbol):
+    stock = stock_collection.find_one({"symbol": symbol.upper()}, {"_id": 0}, sort=[("fetched_at", -1)])
+    if stock:
+        features = [[stock['open_price'], stock['high_price'], stock['low_price'], stock['volume'], stock['turnover']]]
+        prediction = model.predict(features)[0]
+        return jsonify({"symbol": symbol, "predicted_close_price": prediction})
+    return jsonify({"error": "Stock not found"}), 404
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

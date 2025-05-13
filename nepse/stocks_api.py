@@ -11,7 +11,11 @@ CORS(app, resources={r"/stocks/*": {"origins": "http://localhost:3000"}})
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client["Smartfin_db"]
 stock_collection = db["stocks"]
-history_collection = db["stock_history"]  # Add reference to stock_history
+history_collection = db["stock_history"]
+
+# Load models
+regressor_model = joblib.load("random_forest_regressor.pkl")
+classifier_model = joblib.load("random_forest_classifier.pkl")
 
 @app.route("/stocks", methods=["GET"])
 def get_stocks():
@@ -40,17 +44,22 @@ def get_stock_history(symbol):
         return jsonify(history)
     return jsonify({"error": "No historical data found"}), 404
 
-
-# Load model
-model = joblib.load("random_forest_model.pkl")
-
 @app.route("/stocks/predict/<symbol>", methods=["GET"])
 def predict_stock(symbol):
     stock = stock_collection.find_one({"symbol": symbol.upper()}, {"_id": 0}, sort=[("fetched_at", -1)])
     if stock:
-        features = [[stock['open_price'], stock['high_price'], stock['low_price'], stock['volume'], stock['turnover']]]
-        prediction = model.predict(features)[0]
+        features = [[stock['open_price'], stock['high_price'], stock['low_price'], stock['volume'], stock['turnover'], stock['close_price']]]
+        prediction = regressor_model.predict(features)[0]
         return jsonify({"symbol": symbol, "predicted_close_price": prediction})
+    return jsonify({"error": "Stock not found"}), 404
+
+@app.route("/stocks/classify/<symbol>", methods=["GET"])
+def classify_stock(symbol):
+    stock = stock_collection.find_one({"symbol": symbol.upper()}, {"_id": 0}, sort=[("fetched_at", -1)])
+    if stock:
+        features = [[stock['open_price'], stock['high_price'], stock['low_price'], stock['volume'], stock['turnover'], stock['close_price']]]
+        status = classifier_model.predict(features)[0]
+        return jsonify({"symbol": symbol, "status": status})
     return jsonify({"error": "Stock not found"}), 404
 
 if __name__ == "__main__":

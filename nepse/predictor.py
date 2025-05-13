@@ -1,10 +1,11 @@
 from pymongo import MongoClient
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, accuracy_score
 import pandas as pd
 import os
 from dotenv import load_dotenv
+import joblib
 
 load_dotenv()
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -15,28 +16,58 @@ history_collection = db["stock_history"]
 data = list(history_collection.find({}, {"_id": 0}))
 df = pd.DataFrame(data)
 
-# Prepare features and target
-features = df[['open_price', 'high_price', 'low_price', 'volume', 'turnover']]
-target = df['close_price'].shift(-1)  # Predict next day's close price
-features = features[:-1]  # Remove last row (no target)
-target = target[:-1]
+# Prepare features for both models
+features = df[['open_price', 'high_price', 'low_price', 'volume', 'turnover', 'close_price']]
+
+# --- Prediction Model (RandomForestRegressor) ---
+df['next_close'] = df['close_price'].shift(-1)
+target_price = df['next_close'][:-1]  # Remove last row (no target)
+features_price = features[:-1]
 
 # Handle missing values
-features = features.fillna(features.mean())
-target = target.fillna(target.mean())
+features_price = features_price.fillna(features_price.mean())
+target_price = target_price.fillna(target_price.mean())
 
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+# Split data for prediction
+X_train_price, X_test_price, y_train_price, y_test_price = train_test_split(features_price, target_price, test_size=0.2, random_state=42)
 
-# Train Random Forest
-rf = RandomForestRegressor(n_estimators=100, random_state=42)
-rf.fit(X_train, y_train)
+# Train Random Forest Regressor
+rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_regressor.fit(X_train_price, y_train_price)
 
-# Predict and evaluate
-y_pred = rf.predict(X_test)
-mse = mean_squared_error(y_test, y_pred)
-print(f"Mean Squared Error: {mse}")
+# Evaluate prediction
+y_pred_price = rf_regressor.predict(X_test_price)
+mse = mean_squared_error(y_test_price, y_pred_price)
+print(f"Prediction Mean Squared Error: {mse}")
 
-# Save model (optional)
-import joblib
-joblib.dump(rf, "random_forest_model.pkl")
+# Save prediction model
+joblib.dump(rf_regressor, "random_forest_regressor.pkl")
+
+# --- Classification Model (RandomForestClassifier) ---
+df['price_change'] = (df['next_close'] - df['close_price']) / df['close_price'] * 100
+df['label'] = df['price_change'].apply(lambda x: 
+    'Buy' if x > 2 else 
+    'Hold' if -2 <= x <= 2 else 
+    'Sell' if -5 <= x < -2 else 
+    'Avoid')
+target_label = df['label'][:-1]
+features_label = features[:-1]
+
+# Handle missing values
+features_label = features_label.fillna(features_label.mean())
+target_label = target_label.fillna('Hold')
+
+# Split data for classification
+X_train_label, X_test_label, y_train_label, y_test_label = train_test_split(features_label, target_label, test_size=0.2, random_state=42)
+
+# Train Random Forest Classifier
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_classifier.fit(X_train_label, y_train_label)
+
+# Evaluate classification
+y_pred_label = rf_classifier.predict(X_test_label)
+accuracy = accuracy_score(y_test_label, y_pred_label)
+print(f"Classification Accuracy: {accuracy}")
+
+# Save classification model
+joblib.dump(rf_classifier, "random_forest_classifier.pkl")

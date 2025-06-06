@@ -1,0 +1,88 @@
+.hero-section {
+  width: 100vw; /* ✅ Full width of the viewport */
+  background-color: #151d35; /* or your desired background */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+}
+.hero-content {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+
+.hero-text {
+  flex: 1;
+  max-width: 600px;
+}
+
+.hero-text h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.hero-text p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  color: #cfd1e1;
+}
+
+.hero-text button {
+  background: #ff4d67;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.hero-text button:hover {
+  background: #e43f59;
+}
+
+.hero-image {
+  flex: 1;
+  text-align: center;
+}
+
+.hero-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;       /* ✅ Soft rounded corners */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* ✅ Depth */
+  transition: transform 0.3s ease-in-out;
+}
+.hero-image img:hover {
+  transform: scale(1.03);  /* ✅ Slight zoom on hover */
+}
+
+
+/* 🔽 New Finance Section Below */
+.finance-section {
+  background-color: #f4f5f9;
+  padding: 4rem 5%;
+  text-align: center;
+}
+
+.finance-section h2 {
+  font-size: 2rem;
+  color: #151d35;
+  margin-bottom: 1rem;
+}
+
+.finance-section p {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  color: #333;
+}

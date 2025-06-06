@@ -1,0 +1,9 @@
+.dashboard-layout {
+  display: flex;
+}
+
+.dashboard-content {
+  margin-left: 220px;
+  padding: 2rem;
+  width: 100%;
+}

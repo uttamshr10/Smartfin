@@ -1,0 +1,27 @@
+/* src/components/Layout.css */
+.main-content {
+  flex-grow: 1;
+  min-width: 0; /* 💥 Must-have to stop flex child from overflowing */
+  background-color: #f8f9fa;
+  padding: 2rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+
+/* src/components/Layout.css */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+
+body {
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+}

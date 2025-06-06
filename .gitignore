@@ -1,3 +1,5 @@
 .env
 node_modules/
 nepse/smartfin-nepse/
+frontend/node_modules/
+frontend/build/

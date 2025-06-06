@@ -1,0 +1,40 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  background: #1e1e1e;
+  color: white;
+  padding: 1rem 2rem;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  color: #0d6efd;
+}
+.navbar {
+  font-size: 1.1rem;        /* 🔠 Slightly larger font */
+  padding: 1rem 2rem;
+}
+
+.navbar a {
+  color: white;
+  margin-left: 1.5rem;
+  font-weight: 500;
+  font-size: 1.1rem;        /* Ensures link text is bigger */
+  text-decoration: none;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;        /* For brand/logo like SmartFin */
+  font-weight: bold;
+  color: white;
+}

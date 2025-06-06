@@ -1,0 +1,10 @@
+.footer {
+  width: 100%;
+  background-color: #ffffff; /* ✅ White background */
+  color: #151d35;            /* ✅ Dark text for contrast */
+  text-align: center;
+  padding: 1rem 0;
+  font-size: 0.9rem;
+  border-top: 1px solid #ccc; /* optional: light top border */
+}
+

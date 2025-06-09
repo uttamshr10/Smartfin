@@ -1,16 +1,25 @@
-const Account = require("../models/Account");
+// In controllers/accountController.js
+exports.createAccount = (req, res) => {
+  const { firstName, lastName, email, contact, dob, profession, password } = req.body;
+  const profilePic = req.file ? req.file.path : null; // Save file path
 
-exports.createAccount = async (req, res) => {
-  try {
-    const account = new Account({ ...req.body, userId: req.user });
-    await account.save();
-    res.status(201).json(account);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
+  // Save the user data to the database (MongoDB)
+  const newUser = new User({
+    firstName,
+    lastName,
+    email,
+    contact,
+    dob,
+    profession,
+    password,
+    profilePic,
+  });
 
-exports.getAccounts = async (req, res) => {
-  const accounts = await Account.find({ userId: req.user });
-  res.json(accounts);
+  newUser.save()
+    .then(() => {
+      res.status(201).json({ message: "User registered successfully" });
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
 };

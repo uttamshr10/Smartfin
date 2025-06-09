@@ -1,26 +1,45 @@
-// here we will define mongoose schema
+// models/User.js
 
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: {
-    type: String,
-    unique: true,
-    required: true
+// Define schema for User
+const UserSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: true, // Make sure it's required
+    },
+    lastName: {
+      type: String,
+      required: true, // Make sure it's required
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true, // Email should be unique in the collection
+    },
+    contact: {
+      type: String,
+      required: true, // Make sure it's required
+    },
+    dob: {
+      type: Date,
+    },
+    profession: {
+      type: String,
+    },
+    password: {
+      type: String,
+      required: true, // Make sure it's required
+    },
+    profilePic: {
+      type: String, // You will store the path to the image if provided
+    },
   },
-  password: {
-    type: String,
-    required: true
-  }
-});
+  { timestamps: true }
+);
 
-UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+// Create a model based on the schema
+const User = mongoose.model("User", UserSchema);
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = User;

@@ -1,52 +1,58 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Form, Button, Alert, Container, Row, Col } from "react-bootstrap";
+import { Table, Form, Button, Alert, Container, Row, Col, Spinner } from "react-bootstrap";
 
 const StockDashboard = () => {
   const [stocks, setStocks] = useState([]);
   const [search, setSearch] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch all stocks when the component mounts
   useEffect(() => {
     fetchAllStocks();
   }, []);
 
+  // Function to fetch all stocks
   const fetchAllStocks = () => {
-   axios.get("http://localhost:3000/api/stocks")
-
+    setLoading(true);
+    axios
+      .get("http://localhost:3000/api/stocks")
       .then((response) => {
         setStocks(response.data);
         setError(null);
       })
       .catch((error) => {
-        console.error("Fetch error:", error.message);
         setError("Failed to load stocks: " + error.message);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
-useEffect(() => {
-  axios.get("http://localhost:3000/api/stocks")
-    .then((res) => setStocks(res.data))
-    .catch((err) => setError("Failed to fetch stocks"));
-}, []);
 
+  // Function to handle search
   const handleSearch = () => {
     if (search.trim() === "") {
-      fetchAllStocks();
+      fetchAllStocks(); // If search is empty, fetch all stocks
     } else {
-     axios.get(`http://localhost:3000/api/stocks/${search}`)
-
+      setLoading(true);
+      axios
+        .get(`http://localhost:3000/api/stocks/${search}`)
         .then((response) => {
           if (response.data.error) {
             setError(response.data.error);
-            setStocks([]);
+            setStocks([]); // Clear previous stocks
           } else {
             setStocks([response.data]);
-            setError(null);
+            setError(null); // Clear error
           }
         })
         .catch((error) => {
           setError("Stock not found or error: " + error.message);
-          setStocks([]);
+          setStocks([]); // Clear the stocks if error occurs
+        })
+        .finally(() => {
+          setLoading(false); // Stop the loading spinner
         });
     }
   };
@@ -55,6 +61,7 @@ useEffect(() => {
     <Container fluid className="mt-4">
       <h2 className="mb-4 text-primary">📈 NEPSE Stock Dashboard</h2>
 
+      {/* Search Bar */}
       <Row className="mb-3">
         <Col md={6}>
           <Form.Control
@@ -65,18 +72,20 @@ useEffect(() => {
           />
         </Col>
         <Col md="auto">
-          <Button variant="primary" onClick={handleSearch}>
-            Search
+          <Button variant="primary" onClick={handleSearch} disabled={loading}>
+            {loading ? <Spinner animation="border" size="sm" /> : "Search"}
           </Button>
         </Col>
       </Row>
 
+      {/* Error Message */}
       {error && (
         <Alert variant="danger">
           {error}
         </Alert>
       )}
 
+      {/* Stock Table */}
       <div className="table-responsive">
         <Table striped bordered hover size="sm">
           <thead className="table-dark">
@@ -107,7 +116,9 @@ useEffect(() => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center text-muted">No stocks found</td>
+                <td colSpan="8" className="text-center text-muted">
+                  {loading ? "Loading stocks..." : "No stocks found"}
+                </td>
               </tr>
             )}
           </tbody>

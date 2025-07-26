@@ -1,20 +1,33 @@
 import React, { useState } from "react";
 import { Form, Button, Card } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Logging in:", { email, password });
-    alert("Login submitted");
-  };
 
-  const handleGoBack = () => {
-    navigate("/dashboard");
+    try {
+    const response = await axios.post("http://localhost:3000/api/auth/login", {
+  email,
+  password,
+});
+
+      // Store JWT token in localStorage
+      localStorage.setItem("token", response.data.token);
+
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Login failed. Check your credentials."
+      );
+    }
   };
 
   return (
@@ -28,26 +41,7 @@ const Login = () => {
         backgroundColor: "#f8f9fa",
       }}
     >
-      {/* Top-left "Go Back" button */}
-      <Button
-        variant="link"
-        style={{
-          position: "absolute",
-          top: "20px",
-          left: "20px",
-          textDecoration: "none",
-          fontWeight: "bold",
-        }}
-        onClick={handleGoBack}
-      >
-        ← Go back to Dashboard
-      </Button>
-
-      {/* Login Form Card */}
-      <Card
-        style={{ padding: "2rem", width: "100%", maxWidth: "400px" }}
-        className="shadow"
-      >
+      <Card style={{ padding: "2rem", width: "100%", maxWidth: "400px" }} className="shadow">
         <h3 className="text-center mb-4">Login to SmartFin</h3>
         <Form onSubmit={handleLogin}>
           <Form.Group className="mb-3">
@@ -72,6 +66,8 @@ const Login = () => {
             />
           </Form.Group>
 
+          {error && <div className="alert alert-danger">{error}</div>}
+
           <div className="d-grid">
             <Button variant="primary" type="submit">
               Login
@@ -87,6 +83,22 @@ const Login = () => {
       </Card>
     </div>
   );
+};
+const handleLogin = (event) => {
+  event.preventDefault();
+
+  // Dummy profile data for example purposes
+  const userData = {
+    username: 'JohnDoe',
+    email: 'johndoe@example.com',
+    profilePic: 'defaultPic.jpg', // Or store a base64 image or URL
+  };
+
+  // Store user data in localStorage
+  localStorage.setItem('user', JSON.stringify(userData));
+
+  // Redirect to dashboard after successful login
+  navigate('/dashboard');
 };
 
 export default Login;

@@ -8,8 +8,6 @@ const Sidebar = () => {
       <h2>SmartFin</h2>
       <ul>
         <li><Link to="/dashboard">Dashboard</Link></li>
-        <li><Link to="/dashboard/accounts">Accounts</Link></li>
-        <li><Link to="/dashboard/auth">Auth</Link></li>
         <li><Link to="/dashboard/budgets">Budgets</Link></li>
         <li><Link to="/dashboard/goals">Goals</Link></li>
         <li><Link to="/dashboard/predictions">Predictions</Link></li>

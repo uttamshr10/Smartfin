@@ -2,10 +2,13 @@ const mongoose = require("mongoose");
 
 const GoalSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  title: String,
+  name: { type: String, required: true },
   targetAmount: { type: Number, required: true },
-  savedAmount: { type: Number, default: 0 },
-  deadline: Date
+  currentAmount: { type: Number, default: 0 },
+  deadline: { type: Date, required: true },
+  description: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  budgetId: { type: mongoose.Schema.Types.ObjectId, ref: "Budget" }, // Link to Budget
 });
 
 module.exports = mongoose.model("Goal", GoalSchema);

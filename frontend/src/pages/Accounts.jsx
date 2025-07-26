@@ -26,9 +26,10 @@ const Accounts = () => {
     try {
       await axios.post(
         "http://localhost:3000/api/accounts",
-        { name: accountName, type: accountType },
+        { accountName, type: accountType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setAccountName("");
       setAccountType("");
       fetchAccounts();
@@ -58,21 +59,23 @@ const Accounts = () => {
           required
         >
           <option value="">Select Type</option>
-          <option value="savings">Savings</option>
-          <option value="checking">Checking</option>
-          <option value="investment">Investment</option>
+          <option value="cash">Cash</option>
+          <option value="bank">Bank</option>
+          <option value="digital">Digital</option>
         </select>
+
         <button type="submit">Create</button>
       </form>
 
       <h3>My Accounts</h3>
       <ul>
-        {accounts.map((acc) => (
-          <li key={acc._id}>
-            <strong>{acc.name}</strong> - {acc.type}
-          </li>
-        ))}
-      </ul>
+  {accounts.map((acc) => (
+    <li key={acc._id}>
+      <strong>{acc.accountName}</strong> - {acc.type}
+    </li>
+  ))}
+</ul>
+
     </div>
   );
 };

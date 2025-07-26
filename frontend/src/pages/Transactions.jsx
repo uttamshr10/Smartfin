@@ -1,121 +1,106 @@
 import React, { useState, useEffect } from "react";
+import { Form, Button, Table, Alert } from "react-bootstrap";
 import axios from "axios";
 
 const Transactions = () => {
-  const [amount, setAmount] = useState("");
+  const [type, setType] = useState("expense");
   const [category, setCategory] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
+  const [note, setNote] = useState("");
   const [transactions, setTransactions] = useState([]);
+  const [error, setError] = useState(null);
 
-  const token = localStorage.getItem("token");
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const fetchTransactions = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/transactions", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:3000/api/transactions", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setTransactions(res.data);
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
+      setTransactions(response.data);
+    } catch (err) {
+      setError("Failed to load transactions");
     }
   };
 
-  const handleAddTransaction = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!token) {
-      alert("You must be logged in to add a transaction.");
-      return;
-    }
-
     try {
-      const response = await axios.post(
+      const token = localStorage.getItem("token");
+      await axios.post(
         "http://localhost:3000/api/transactions",
-        {
-          amount: parseFloat(amount),
-          category,
-          date,
-          description: description || "",
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { type, category, amount: parseFloat(amount), date, note },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      alert("Transaction added successfully");
-      setAmount("");
+      fetchTransactions();
+      setType("expense");
       setCategory("");
-      setDate(new Date().toISOString().split("T")[0]);
-      setDescription("");
-      fetchTransactions(); // Refresh list
-    } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
-      alert("Error adding transaction: " + (error.response?.data?.error || error.message));
+      setAmount("");
+      setDate("");
+      setNote("");
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to add transaction");
     }
   };
-
-  useEffect(() => {
-    if (token) {
-      fetchTransactions();
-    }
-  }, []);
 
   return (
     <div style={{ padding: "2rem" }}>
       <h2>Transactions</h2>
-      <p>Review your past and ongoing transactions.</p>
-
-      <h3>Add New Transaction</h3>
-      <form onSubmit={handleAddTransaction}>
-        <input
-          type="number"
-          placeholder="Amount (NPR)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-        />
-        <select value={category} onChange={(e) => setCategory(e.target.value)} required>
-          <option value="">Select Category</option>
-          <option value="Food">Food</option>
-          <option value="Transport">Transport</option>
-          <option value="Bills">Bills</option>
-          <option value="Health">Health</option>
-          <option value="Education">Education</option>
-        </select>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <button type="submit">Add Transaction</button>
-      </form>
-
-      <h3 style={{ marginTop: "2rem" }}>Your Transactions</h3>
-      <ul>
-        {transactions.length > 0 ? (
-          transactions.map((txn) => (
-            <li key={txn._id}>
-              <strong>NPR {txn.amount}</strong> - {txn.category} on{" "}
-              {new Date(txn.date).toLocaleDateString()} ({txn.description})
-            </li>
-          ))
-        ) : (
-          <p>No transactions found.</p>
-        )}
-      </ul>
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3">
+          <Form.Label>Type</Form.Label>
+          <Form.Control as="select" value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </Form.Control>
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Category</Form.Label>
+          <Form.Control type="text" value={category} onChange={(e) => setCategory(e.target.value)} required />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Amount</Form.Label>
+          <Form.Control type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Date</Form.Label>
+          <Form.Control type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Note</Form.Label>
+          <Form.Control as="textarea" value={note} onChange={(e) => setNote(e.target.value)} />
+        </Form.Group>
+        <Button variant="primary" type="submit">Add Transaction</Button>
+      </Form>
+      <h3>Your Transactions</h3>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {transactions.map((t) => (
+            <tr key={t._id}>
+              <td>{t.type}</td>
+              <td>{t.category}</td>
+              <td>${t.amount}</td>
+              <td>{new Date(t.date).toLocaleDateString()}</td>
+              <td>{t.note || "N/A"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
     </div>
   );
 };

@@ -12,8 +12,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 import Dashboard from "./pages/Dashboard";
-import Accounts from "./pages/Accounts";
-import Auth from "./pages/Auth";
 import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Predictions from "./pages/Predictions";
@@ -93,8 +91,6 @@ const App = () => {
           <Dashboard />
           }
       >
-        <Route path="accounts" element={<Accounts />} />
-        <Route path="auth" element={<Auth />} />
         <Route path="budgets" element={<Budgets />} />
         <Route path="goals" element={<Goals />} />
         <Route path="predictions" element={<Predictions />} />

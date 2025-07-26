@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const auth = require("../middleware/auth");
-const { createGoal, getGoals } = require("../controllers/goalController");
+const { setGoal, getGoals, updateGoalProgress } = require("../controllers/goalController");
 
-router.post("/", auth, createGoal);
+router.post("/", auth, setGoal);
 router.get("/", auth, getGoals);
+router.post("/progress", auth, updateGoalProgress);
 
 module.exports = router;

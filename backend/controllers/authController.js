@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose"); // Add this line
+const mongoose = require("mongoose");
 
 exports.signup = async (req, res) => {
   try {
@@ -33,7 +33,7 @@ exports.signup = async (req, res) => {
   }
 };
 
-
+// Keep login and updateProfile as they are
 exports.login = async (req, res) => {
   try {
     console.log("Login request received:", req.body);

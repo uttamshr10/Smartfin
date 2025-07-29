@@ -2,7 +2,7 @@ const Transaction = require("../models/Transaction");
 const Budget = require("../models/Budget");
 const Goal = require("../models/Goal");
 
-exports.addTransaction = async (req, res) => {
+exports.createTransaction = async (req, res) => {
   try {
     const { type, category, amount, date, note } = req.body;
     const transaction = new Transaction({
@@ -31,6 +31,28 @@ exports.addTransaction = async (req, res) => {
     }
 
     res.status(201).json(transaction);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find({ userId: req.user._id });
+    res.json(transactions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
+    res.json({ message: "Transaction deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -7,8 +7,7 @@ const GoalSchema = new mongoose.Schema({
   currentAmount: { type: Number, default: 0 },
   deadline: { type: Date, required: true },
   description: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  budgetId: { type: mongoose.Schema.Types.ObjectId, ref: "Budget" }, // Link to Budget
+  createdAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model("Goal", GoalSchema);

@@ -5,7 +5,6 @@ const cors = require("cors");
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') }); // Fix path
 
-
 const app = express();
 
 // Configure CORS
@@ -23,7 +22,6 @@ app.use((req, res, next) => {
     next();
 });
 app.use(express.json());
-
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/transactions", require("./routes/transactions"));
@@ -32,6 +30,7 @@ app.use("/api/budgets", require("./routes/budgets"));
 app.use("/api/stocks", require("./routes/stocks"));
 app.use("/api/goals", require("./routes/goals"));
 app.use("/api/predictions", require("./routes/predictions"));
+app.use("/api/favorite-stocks", require("./routes/favoriteStocks")); // Add this line
 
 // Enhanced Mongoose connection with reconnection
 const connectWithRetry = () => {

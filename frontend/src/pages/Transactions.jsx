@@ -18,12 +18,14 @@ const Transactions = () => {
   const fetchTransactions = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Fetch transactions - Token:", token);
       const response = await axios.get("http://localhost:3000/api/transactions", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTransactions(response.data);
     } catch (err) {
       setError("Failed to load transactions");
+      console.log("Fetch transactions error:", err.response?.data); // Debug error
     }
   };
 
@@ -31,9 +33,20 @@ const Transactions = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
+      console.log("Submit transaction - Token:", token);
+      const payload = {
+        type,
+        category,
+        amount: parseFloat(amount),
+        date,
+        note,
+        userId: JSON.parse(atob(token.split('.')[1])).userId,
+      };
+      console.log("Sending transaction data, userId:", payload.userId, "Full payload:", payload);
+
       await axios.post(
         "http://localhost:3000/api/transactions",
-        { type, category, amount: parseFloat(amount), date, note },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchTransactions();
@@ -45,6 +58,7 @@ const Transactions = () => {
       setError(null);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to add transaction");
+      console.log("Submit transaction error:", err.response?.data); // Debug error
     }
   };
 

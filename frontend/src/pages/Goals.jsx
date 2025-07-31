@@ -1,4 +1,3 @@
-// src/pages/Goals.jsx
 import React, { useState, useEffect } from "react";
 import { Form, Button, Card, Alert, Table, ProgressBar } from "react-bootstrap";
 import axios from "axios";
@@ -9,41 +8,41 @@ const Goals = () => {
   const [targetAmount, setTargetAmount] = useState("");
   const [deadline, setDeadline] = useState("");
   const [description, setDescription] = useState("");
-  const [budgetId, setBudgetId] = useState(""); // New field to link to a budget
   const [goals, setGoals] = useState([]);
-  const [budgets, setBudgets] = useState([]); // To populate budget dropdown
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchGoalsAndBudgets = async () => {
+    const fetchGoals = async () => {
       try {
         const token = localStorage.getItem("token");
-        // Fetch goals
-        const goalsResponse = await axios.get("http://localhost:3000/api/goals", {
+        const response = await axios.get("http://localhost:3000/api/goals", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setGoals(goalsResponse.data);
-        // Fetch budgets
-        const budgetsResponse = await axios.get("http://localhost:3000/api/budgets", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setBudgets(budgetsResponse.data);
+        setGoals(response.data);
       } catch (err) {
-        setError("Failed to load goals or budgets");
+        setError("Failed to load goals");
       }
     };
-    fetchGoalsAndBudgets();
+    fetchGoals();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
+      const payload = {
+        name,
+        targetAmount: parseFloat(targetAmount),
+        deadline,
+        description,
+      };
+      console.log("Sending goal data, payload:", payload);
+
       const response = await axios.post(
         "http://localhost:3000/api/goals",
-        { name, targetAmount: parseFloat(targetAmount), deadline, description, budgetId },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setGoals([...goals, response.data]);
@@ -52,7 +51,6 @@ const Goals = () => {
       setTargetAmount("");
       setDeadline("");
       setDescription("");
-      setBudgetId("");
       setError(null);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to create goal");
@@ -124,21 +122,6 @@ const Goals = () => {
                 placeholder="e.g., Save for a trip"
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Linked Budget (Optional)</Form.Label>
-              <Form.Control
-                as="select"
-                value={budgetId}
-                onChange={(e) => setBudgetId(e.target.value)}
-              >
-                <option value="">Select a Budget</option>
-                {budgets.map((budget) => (
-                  <option key={budget._id} value={budget._id}>
-                    {budget.category} (${budget.limit}, {budget.month})
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
             <Button variant="primary" type="submit">Set Goal</Button>
           </Form>
         </Card.Body>
@@ -170,7 +153,7 @@ const Goals = () => {
                 <td>
                   <Button
                     variant="success"
-                    onClick={() => updateProgress(goal._id, 50)} // Example amount
+                    onClick={() => updateProgress(goal._id, 50)}
                     size="sm"
                   >
                     Add $50

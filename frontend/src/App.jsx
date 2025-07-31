@@ -17,6 +17,7 @@ import Goals from "./pages/Goals";
 import Predictions from "./pages/Predictions";
 import Transactions from "./pages/Transactions";
 import StockDashboard from "./components/StockDashboard";
+import HistoricalPrice from "./pages/HistoricalPrice";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
@@ -97,6 +98,16 @@ const App = () => {
         <Route path="transactions" element={<Transactions />} />
         <Route path="stocks" element={<StockDashboard />} />
       </Route>
+      <Route
+  path="/dashboard/historical-price/:symbol"
+  element={
+    <ProtectedRoute>
+      <>
+        <HistoricalPrice />
+      </>
+    </ProtectedRoute>
+  }
+/>
     </Routes>
   );
 };

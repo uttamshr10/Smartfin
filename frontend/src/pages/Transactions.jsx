@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Table, Alert } from "react-bootstrap";
 import axios from "axios";
+import { FaEdit, FaTrash } from "react-icons/fa"; // Import icons
 
 const Transactions = () => {
   const [type, setType] = useState("expense");
@@ -10,6 +11,8 @@ const Transactions = () => {
   const [note, setNote] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null); // State for success messages
+  const [editTransaction, setEditTransaction] = useState(null); // State for editing
 
   useEffect(() => {
     fetchTransactions();
@@ -40,32 +43,70 @@ const Transactions = () => {
         amount: parseFloat(amount),
         date,
         note,
-        userId: JSON.parse(atob(token.split('.')[1])).userId,
+        userId: JSON.parse(atob(token.split('.')[1])).userId, // Ensure userId is included
       };
       console.log("Sending transaction data, userId:", payload.userId, "Full payload:", payload);
 
-      await axios.post(
-        "http://localhost:3000/api/transactions",
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchTransactions();
+      let response;
+      if (editTransaction) {
+        response = await axios.put(
+          `http://localhost:3000/api/transactions/${editTransaction._id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTransactions(transactions.map((t) => (t._id === editTransaction._id ? response.data : t)));
+        setSuccess("Transaction updated successfully!"); // Success message for update
+      } else {
+        response = await axios.post(
+          "http://localhost:3000/api/transactions",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTransactions([...transactions, response.data]);
+        setSuccess("Transaction added successfully!"); // Success message for create
+      }
       setType("expense");
       setCategory("");
       setAmount("");
       setDate("");
       setNote("");
       setError(null);
+      setEditTransaction(null); // Reset edit state
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to add transaction");
+      setError(err.response?.data?.error || "Failed to " + (editTransaction ? "update" : "add") + " transaction");
       console.log("Submit transaction error:", err.response?.data); // Debug error
     }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:3000/api/transactions/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTransactions(transactions.filter((t) => t._id !== id));
+      setSuccess("Transaction deleted successfully!"); // Success message for delete
+      setError(null);
+    } catch (err) {
+      setError("Failed to delete transaction");
+      console.log("Delete transaction error:", err.response?.data); // Debug error
+    }
+  };
+
+  const handleEdit = (transaction) => {
+    setEditTransaction(transaction);
+    setType(transaction.type);
+    setCategory(transaction.category);
+    setAmount(transaction.amount.toString());
+    setDate(transaction.date.split("T")[0]); // Format date for input
+    setNote(transaction.note || "");
   };
 
   return (
     <div style={{ padding: "2rem" }}>
       <h2>Transactions</h2>
       {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>} {/* Display success message */}
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Type</Form.Label>
@@ -90,7 +131,25 @@ const Transactions = () => {
           <Form.Label>Note</Form.Label>
           <Form.Control as="textarea" value={note} onChange={(e) => setNote(e.target.value)} />
         </Form.Group>
-        <Button variant="primary" type="submit">Add Transaction</Button>
+        <Button variant="primary" type="submit">
+          {editTransaction ? "Update Transaction" : "Add Transaction"}
+        </Button>
+        {editTransaction && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setType("expense");
+              setCategory("");
+              setAmount("");
+              setDate("");
+              setNote("");
+              setEditTransaction(null);
+            }}
+            className="ms-2"
+          >
+            Cancel
+          </Button>
+        )}
       </Form>
       <h3>Your Transactions</h3>
       <Table striped bordered hover>
@@ -101,6 +160,7 @@ const Transactions = () => {
             <th>Amount</th>
             <th>Date</th>
             <th>Note</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -108,9 +168,19 @@ const Transactions = () => {
             <tr key={t._id}>
               <td>{t.type}</td>
               <td>{t.category}</td>
-              <td>${t.amount}</td>
+              <td>Rs. {t.amount}</td>
               <td>{new Date(t.date).toLocaleDateString()}</td>
               <td>{t.note || "N/A"}</td>
+              <td>
+                <FaEdit
+                  style={{ cursor: "pointer", marginRight: "10px", color: "#007bff" }}
+                  onClick={() => handleEdit(t)}
+                />
+                <FaTrash
+                  style={{ cursor: "pointer", color: "#dc3545" }}
+                  onClick={() => handleDelete(t._id)}
+                />
+              </td>
             </tr>
           ))}
         </tbody>

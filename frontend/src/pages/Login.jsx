@@ -50,13 +50,7 @@ const Login = () => {
         backgroundColor: "#f8f9fa",
       }}
     >
-      <Button
-        variant="link"
-        style={{ position: "absolute", top: "20px", left: "20px", textDecoration: "none", fontWeight: "bold" }}
-        onClick={handleGoBack}
-      >
-        ← Go back to Dashboard
-      </Button>
+
       <Card style={{ padding: "2rem", width: "100%", maxWidth: "400px" }} className="shadow">
         <h3 className="text-center mb-4">Login to SmartFin</h3>
         <Form onSubmit={handleLogin}>

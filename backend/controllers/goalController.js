@@ -64,3 +64,28 @@ exports.updateGoalProgress = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.updateGoal = async (req, res) => {
+  try {
+    const { name, targetAmount, deadline, description } = req.body;
+    const goal = await Goal.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      { name, targetAmount: parseFloat(targetAmount), deadline: new Date(deadline), description },
+      { new: true, runValidators: true }
+    );
+    if (!goal) return res.status(404).json({ error: "Goal not found" });
+    res.json(goal);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteGoal = async (req, res) => {
+  try {
+    const goal = await Goal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    if (!goal) return res.status(404).json({ error: "Goal not found" });
+    res.json({ message: "Goal deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

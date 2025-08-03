@@ -1,6 +1,7 @@
 const Transaction = require("../models/Transaction");
 const Budget = require("../models/Budget");
 const Goal = require("../models/Goal");
+const mongoose = require("mongoose");
 
 exports.createTransaction = async (req, res) => {
   try {
@@ -72,6 +73,21 @@ exports.deleteTransaction = async (req, res) => {
     });
     if (!transaction) return res.status(404).json({ error: "Transaction not found" });
     res.json({ message: "Transaction deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateTransaction = async (req, res) => {
+  try {
+    const { type, category, amount, date, note } = req.body;
+    const transaction = await Transaction.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      { type, category, amount: parseFloat(amount) || 0, date: date ? new Date(date) : new Date(), note: note || "" },
+      { new: true, runValidators: true }
+    );
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
+    res.json(transaction);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

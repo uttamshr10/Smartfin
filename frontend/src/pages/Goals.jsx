@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Form, Button, Card, Alert, Table, ProgressBar } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaEdit, FaTrash } from "react-icons/fa"; // Import icons
 
 const Goals = () => {
   const [name, setName] = useState("");
@@ -11,22 +12,24 @@ const Goals = () => {
   const [goals, setGoals] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [editGoal, setEditGoal] = useState(null); // State for editing
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchGoals = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:3000/api/goals", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setGoals(response.data);
-      } catch (err) {
-        setError("Failed to load goals");
-      }
-    };
     fetchGoals();
   }, []);
+
+  const fetchGoals = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:3000/api/goals", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setGoals(response.data);
+    } catch (err) {
+      setError("Failed to load goals");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,40 +43,82 @@ const Goals = () => {
       };
       console.log("Sending goal data, payload:", payload);
 
-      const response = await axios.post(
-        "http://localhost:3000/api/goals",
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setGoals([...goals, response.data]);
-      setSuccess("Goal created successfully!");
+      let response;
+      if (editGoal) {
+        response = await axios.put(
+          `http://localhost:3000/api/goals/${editGoal._id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setGoals(goals.map((goal) => (goal._id === editGoal._id ? response.data : goal)));
+        setSuccess("Goal updated successfully!");
+      } else {
+        response = await axios.post(
+          "http://localhost:3000/api/goals",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setGoals([...goals, response.data]);
+        setSuccess("Goal created successfully!");
+      }
       setName("");
       setTargetAmount("");
       setDeadline("");
       setDescription("");
       setError(null);
+      setEditGoal(null); // Reset edit state
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to create goal");
+      setError(err.response?.data?.error || "Failed to " + (editGoal ? "update" : "create") + " goal");
       setSuccess(null);
     }
   };
 
-  const updateProgress = async (goalId, amount) => {
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:3000/api/goals/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setGoals(goals.filter((goal) => goal._id !== id));
+      setSuccess("Goal deleted successfully!");
+      setError(null);
+    } catch (err) {
+      setError("Failed to delete goal");
+    }
+  };
+
+  const handleEdit = (goal) => {
+    setEditGoal(goal);
+    setName(goal.name);
+    setTargetAmount(goal.targetAmount.toString());
+    setDeadline(goal.deadline.split("T")[0]); // Format date for input
+    setDescription(goal.description || "");
+  };
+
+  const updateProgress = async (goalId) => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:3000/api/goals/progress",
-        { goalId, amount },
+        { goalId, amount: 500 }, // Fixed to Rs. 500
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const updatedGoals = goals.map((goal) =>
-        goal._id === goalId ? { ...goal, currentAmount: goal.currentAmount + amount } : goal
+        goal._id === goalId ? { ...goal, currentAmount: goal.currentAmount + 500 } : goal
       );
       setGoals(updatedGoals);
-      setSuccess("Progress updated!");
+      setSuccess("Progress updated by Rs. 500!");
     } catch (err) {
       setError("Failed to update progress");
     }
+  };
+
+  const isDeadlinePast = (deadline) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day
+    const goalDeadline = new Date(deadline);
+    goalDeadline.setHours(0, 0, 0, 0); // Normalize to start of day
+    return goalDeadline < today;
   };
 
   return (
@@ -95,7 +140,7 @@ const Goals = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Target Amount ($)</Form.Label>
+              <Form.Label>Target Amount (Rs.)</Form.Label>
               <Form.Control
                 type="number"
                 value={targetAmount}
@@ -122,7 +167,24 @@ const Goals = () => {
                 placeholder="e.g., Save for a trip"
               />
             </Form.Group>
-            <Button variant="primary" type="submit">Set Goal</Button>
+            <Button variant="primary" type="submit">
+              {editGoal ? "Update Goal" : "Set Goal"}
+            </Button>
+            {editGoal && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setName("");
+                  setTargetAmount("");
+                  setDeadline("");
+                  setDescription("");
+                  setEditGoal(null);
+                }}
+                className="ms-2"
+              >
+                Cancel
+              </Button>
+            )}
           </Form>
         </Card.Body>
       </Card>
@@ -141,23 +203,40 @@ const Goals = () => {
         <tbody>
           {goals.map((goal) => {
             const progress = (goal.currentAmount / goal.targetAmount) * 100 || 0;
+            const isPastDeadline = isDeadlinePast(goal.deadline);
+            const progressLabel = progress === 100 ? "Goal Achieved ✅" : `${progress.toFixed(1)}%`; // Emphasized label
+
             return (
               <tr key={goal._id}>
                 <td>{goal.name}</td>
-                <td>${goal.targetAmount}</td>
-                <td>${goal.currentAmount}</td>
-                <td>{new Date(goal.deadline).toLocaleDateString()}</td>
+                <td>Rs. {goal.targetAmount}</td>
+                <td>Rs. {goal.currentAmount}</td>
+                <td style={{ color: isPastDeadline ? "red" : "inherit" }}>
+                  {new Date(goal.deadline).toLocaleDateString()}
+                </td>
                 <td>
-                  <ProgressBar now={progress} label={`${progress.toFixed(1)}%`} />
+                  <ProgressBar
+                    now={progress}
+                    label={progressLabel}
+                    variant={progress === 100 ? "success" : "primary"}
+                  />
                 </td>
                 <td>
                   <Button
                     variant="success"
-                    onClick={() => updateProgress(goal._id, 50)}
+                    onClick={() => updateProgress(goal._id)}
                     size="sm"
                   >
-                    Add $50
+                    Add Rs.500
                   </Button>
+                  <FaEdit
+                    style={{ cursor: "pointer", marginLeft: "10px", color: "#007bff" }}
+                    onClick={() => handleEdit(goal)}
+                  />
+                  <FaTrash
+                    style={{ cursor: "pointer", marginLeft: "10px", color: "#dc3545" }}
+                    onClick={() => handleDelete(goal._id)}
+                  />
                 </td>
               </tr>
             );

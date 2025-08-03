@@ -139,12 +139,28 @@ const StockDashboard = () => {
             {stocks.length > 0 ? (
               stocks.map((stock) => (
                 <tr key={stock.symbol}>
-                  <td><strong>{stock.symbol}</strong></td>
+                  <td
+                    style={{
+                      backgroundColor: stock.open_price < stock.close_price ? "#28a745" : "#dc3545",
+                      color: "white",
+                    }}
+                  >
+                    <strong>{stock.symbol}</strong>
+                  </td>
                   <td>{stock.open_price}</td>
                   <td>{stock.high_price}</td>
                   <td>{stock.low_price}</td>
-                  <td>{stock.close_price}</td>
-                  <td className="text-success">{stock.ltp}</td>
+                  <td
+                    style={{
+                      backgroundColor: stock.open_price < stock.close_price ? "#28a745" : "#dc3545",
+                      color: "white",
+                    }}
+                  >
+                    {stock.close_price}
+                  </td>
+                  <td>
+                    {stock.ltp}
+                  </td>
                   <td>{stock.volume}</td>
                   <td>{stock.turnover}</td>
                   <td>

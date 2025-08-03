@@ -204,7 +204,7 @@ const Goals = () => {
           {goals.map((goal) => {
             const progress = (goal.currentAmount / goal.targetAmount) * 100 || 0;
             const isPastDeadline = isDeadlinePast(goal.deadline);
-            const progressLabel = progress === 100 ? "Goal Achieved ✅" : `${progress.toFixed(1)}%`; // Emphasized label
+            const progressLabel = progress >= 100 ? "Goal Achieved ✅" : `${progress.toFixed(1)}%`;
 
             return (
               <tr key={goal._id}>
@@ -218,7 +218,7 @@ const Goals = () => {
                   <ProgressBar
                     now={progress}
                     label={progressLabel}
-                    variant={progress === 100 ? "success" : "primary"}
+                    variant={progress >= 100 ? "success" : "primary"}
                   />
                 </td>
                 <td>
@@ -226,6 +226,7 @@ const Goals = () => {
                     variant="success"
                     onClick={() => updateProgress(goal._id)}
                     size="sm"
+                    disabled={progress >= 100}
                   >
                     Add Rs.500
                   </Button>

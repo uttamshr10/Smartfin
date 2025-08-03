@@ -31,6 +31,7 @@ app.use("/api/stocks", require("./routes/stocks"));
 app.use("/api/goals", require("./routes/goals"));
 app.use("/api/predictions", require("./routes/predictions"));
 app.use("/api/favorite-stocks", require("./routes/favoriteStocks")); // Add this line
+app.use("/api", require("./routes/userRoutes"))
 
 // Enhanced Mongoose connection with reconnection
 const connectWithRetry = () => {

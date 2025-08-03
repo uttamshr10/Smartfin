@@ -40,7 +40,7 @@ const Predictions = () => {
               );
               const currentClosePrice = sortedHistory[0].close_price;
               const lastClosePrice = sortedHistory[1].close_price;
-              trendsData[stock.symbol] = currentClosePrice > lastClosePrice ? "⬆️" : "⬇️";
+              trendsData[stock.symbol] = currentClosePrice > lastClosePrice ? "⬆📈" : "📉";
             } else {
               trendsData[stock.symbol] = "N/A";
             }

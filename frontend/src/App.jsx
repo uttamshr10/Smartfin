@@ -97,6 +97,7 @@ const App = () => {
         <Route path="predictions" element={<Predictions />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="stocks" element={<StockDashboard />} />
+        
       </Route>
       <Route
   path="/dashboard/historical-price/:symbol"

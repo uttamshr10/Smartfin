@@ -18,6 +18,7 @@ import Predictions from "./pages/Predictions";
 import Transactions from "./pages/Transactions";
 import StockDashboard from "./components/StockDashboard";
 import HistoricalPrice from "./pages/HistoricalPrice";
+import UpdateProfile from "./pages/UpdateProfile"
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
@@ -99,6 +100,7 @@ const App = () => {
         <Route path="stocks" element={<StockDashboard />} />
         
       </Route>
+      <Route path="update-profile" element={<UpdateProfile />} />
       <Route
   path="/dashboard/historical-price/:symbol"
   element={

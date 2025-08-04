@@ -1,14 +1,13 @@
-// routes/userRoutes.js
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const bcrypt = require("bcrypt");
-const User = require("../models/User"); // Assuming you have a User model
+const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Save in 'uploads' folder
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -55,20 +54,56 @@ router.get("/user", async (req, res) => {
       return res.status(401).json({ error: "No Bearer token provided" });
     }
     const token = authHeader.split(" ")[1];
-    console.log("Received token:", token); // Debug: Log the token
+    console.log("Received token:", token);
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify with secret
-    console.log("Decoded payload:", decoded); // Debug: Log the decoded object
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded payload:", decoded);
 
-    const user = await User.findById(decoded.userId).select("firstName");
+    const user = await User.findById(decoded.userId).select("firstName profilePic");
     if (!user) {
-      console.log("User not found for userId:", decoded.userId); // Debug: Log missing user
+      console.log("User not found for userId:", decoded.userId);
       return res.status(404).json({ error: "User not found" });
     }
-    res.json({ firstName: user.firstName });
+    res.json({ firstName: user.firstName, profilePic: user.profilePic });
   } catch (error) {
-    console.error("JWT Verification Error:", error.message, error.stack); // Detailed error
+    console.error("JWT Verification Error:", error.message, error.stack);
     res.status(401).json({ error: "Unauthorized" });
+  }
+});
+
+router.put("/user", upload.single("profilePic"), async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "No Bearer token provided" });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (req.file) {
+      user.profilePic = req.file.path;
+    }
+
+    if (req.body.password) {
+      const isMatch = await bcrypt.compare(req.body.currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    await user.save();
+    res.json({ message: "Profile updated successfully", user: { profilePic: user.profilePic } });
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(400).json({ error: err.message });
   }
 });
 

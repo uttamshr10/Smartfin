@@ -1,28 +1,26 @@
+// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require('path');
+
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') }); // Fix path
 
 const app = express();
 
-// Configure CORS
+// Single CORS configuration
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    if (req.method === "OPTIONS") return res.sendStatus(200);
-    next();
-});
+
 app.use(express.json());
-// Routes
+
+// Routes with debug
+console.log("Loading auth routes from:", path.resolve(__dirname, "./routes/auth")); // Debug path
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/transactions", require("./routes/transactions"));
 app.use("/api/accounts", require("./routes/accounts"));
@@ -30,8 +28,8 @@ app.use("/api/budgets", require("./routes/budgets"));
 app.use("/api/stocks", require("./routes/stocks"));
 app.use("/api/goals", require("./routes/goals"));
 app.use("/api/predictions", require("./routes/predictions"));
-app.use("/api/favorite-stocks", require("./routes/favoriteStocks")); // Add this line
-app.use("/api", require("./routes/userRoutes"))
+app.use("/api/favorite-stocks", require("./routes/favoriteStocks"));
+app.use("/api", require("./routes/userRoutes"));
 
 // Enhanced Mongoose connection with reconnection
 const connectWithRetry = () => {

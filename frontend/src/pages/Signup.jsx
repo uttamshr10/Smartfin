@@ -18,21 +18,39 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
 
+    // Trim inputs and check for empty values
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedEmail = email.trim();
+    const trimmedContact = contact.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedFirstName || !trimmedLastName || !trimmedContact || !trimmedEmail || !trimmedPassword) {
+      setError("All fields are required and cannot be empty.");
+      return;
+    }
+
+    // Additional check to ensure no empty strings
+    if (trimmedFirstName === "" || trimmedLastName === "" || trimmedContact === "" || trimmedEmail === "" || trimmedPassword === "") {
+      setError("All fields must contain valid input.");
+      return;
+    }
+
     try {
+      console.log("Sent data:", { firstName: trimmedFirstName, lastName: trimmedLastName, email: trimmedEmail, contact: trimmedContact, password: trimmedPassword });
       const response = await axios.post("http://localhost:3000/api/auth/signup", {
-        firstName,
-        lastName,
-        email,
-        contact,
-        password,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        email: trimmedEmail,
+        contact: trimmedContact,
+        password: trimmedPassword,
       }, {
         headers: { "Content-Type": "application/json" },
       });
       console.log("Signup success:", response.data);
       setSuccess("Signup successful! Redirecting to login...");
       setError(null);
-      // Store userId for reference (optional, can use token instead)
-      localStorage.setItem("userId", response.data.userId);
+      localStorage.setItem("userId", response.data.userId); // Optional, use token if provided
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       console.error("Signup error:", err.response?.data || err.message);
